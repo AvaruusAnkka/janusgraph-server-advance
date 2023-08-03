@@ -34,16 +34,26 @@ app.get('/graph', async (req: Request, res: Response) => {
 
 app.post('/vertex/edge', async (req: Request, res: Response) => {
   console.log('POST /vertex/edge')
-  if (Number(req.query.id) && Object.keys(req.body).length > 0) {
-    const target = await gremlin.check(Number(req.query.id))
-    if (target) {
+  if (
+    typeof req.query !== 'object' ||
+    !Object.keys(req.body).length ||
+    !Object.keys(req.query).length
+  )
+    res.status(400).json({ error: 'Invalid data.' })
+  else {
+    const exists = (await gremlin.check(Object(req.query)))._items[0]
+
+    if (!exists) res.status(404).json({ error: 'Vertex not found.' })
+    else if (exists > 1)
+      res.status(404).json({ error: 'Multiple vertex found.' })
+    else {
       const result = await gremlin.addVertexWithNode(
-        Number(req.query.id),
+        Object(req.query),
         req.body
       )
       request(res, result)
-    } else res.status(404).json({ error: 'Vertex not found.' })
-  } else res.status(400).json({ error: 'Invalid data.' })
+    }
+  }
 })
 
 app.listen(port, () => {
