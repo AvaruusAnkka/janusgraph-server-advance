@@ -23,7 +23,19 @@ class GremlinQueries {
     return query
   }
 
-  check = (id: number) => g.V(id).hasNext()
+  #searchQuery = (properties: { [key: string]: string }) => {
+    let query = 'V()'
+    for (const key in properties) {
+      if (key === 'id') query += `.hasId(${properties[key]})`
+      else query += `.has('${key}', '${properties[key]}')`
+    }
+    return query
+  }
+
+  check = (properties: { [key: string]: string }) => {
+    const query = this.#searchQuery(properties)
+    return this.#submitters(query + '.count()')
+  }
 
   getVertices = () => {
     const query = `V().project('id', 'name').by(id()).by('name')`
@@ -35,9 +47,14 @@ class GremlinQueries {
     return this.#submitters(query)
   }
 
-  addVertexWithNode = (id: number, vertex: { [key: string]: string }) => {
+  addVertexWithNode = (
+    target: { [key: string]: string },
+    vertex: { [key: string]: string }
+  ) => {
     const addQuery = this.#querify(vertex)
-    const query = `addV()${addQuery}.addE('link').from(V(${id}))`
+    const targetQuery = this.#searchQuery(target)
+    const query = `addV()${addQuery}.addE('link').from(${targetQuery})`
+    return { query }
     return this.#submitters(query)
   }
 }
