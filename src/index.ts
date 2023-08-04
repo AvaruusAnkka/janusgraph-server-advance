@@ -56,6 +56,25 @@ app.post('/vertex/edge', async (req: Request, res: Response) => {
   }
 })
 
+app.post('/edge', async (req: Request, res: Response) => {
+  console.log('POST /edge')
+  console.log(req.body)
+  if (Object.keys(req.body).length !== 2 || !req.body.from || !req.body.to)
+    res.status(400).json({ error: 'Invalid data.' })
+  else {
+    const from = (await gremlin.getVertex({ uuid: req.body.from }))._items[0].id
+    const to = (await gremlin.getVertex({ uuid: req.body.to }))._items[0].id
+
+    console.log(from, to)
+
+    if (!from || !to) res.status(404).json({ error: 'Vertex(s) not found.' })
+    else {
+      const result = await gremlin.addEdge(from, to)
+      request(res, result)
+    }
+  }
+})
+
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`)
 })
