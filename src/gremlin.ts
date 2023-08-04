@@ -37,6 +37,11 @@ class GremlinQueries {
     return this.#submitters(query + '.count()')
   }
 
+  getVertex = (properties: { [key: string]: string }) => {
+    const query = this.#searchQuery(properties)
+    return this.#submitters(query)
+  }
+
   getVertices = () => {
     const query = `V().project('id', 'name').by(id()).by('name')`
     return this.#submitters(query)
@@ -54,7 +59,11 @@ class GremlinQueries {
     const addQuery = this.#querify(vertex)
     const targetQuery = this.#searchQuery(target)
     const query = `addV()${addQuery}.addE('link').from(${targetQuery})`
-    return { query }
+    return this.#submitters(query)
+  }
+
+  addEdge = (from: string, to: string) => {
+    const query = `addE('link').from(V().hasId( ${from} )).to(V().hasId( ${to} ))`
     return this.#submitters(query)
   }
 }
