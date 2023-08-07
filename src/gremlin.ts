@@ -52,18 +52,20 @@ class GremlinQueries {
     return this.#submitters(query)
   }
 
-  addVertexWithNode = (
-    target: { [key: string]: string },
+  addVertexWithEdge = (
+    from: { [key: string]: string },
     vertex: { [key: string]: string }
   ) => {
     const addQuery = this.#querify(vertex)
-    const targetQuery = this.#searchQuery(target)
-    const query = `addV()${addQuery}.addE('link').from(${targetQuery})`
+    const fromQuery = this.#searchQuery(from)
+    const query = `addV()${addQuery}.addE('link').from(${fromQuery})`
     return this.#submitters(query)
   }
 
   addEdge = (from: string, to: string) => {
-    const query = `addE('link').from(V().hasId( ${from} )).to(V().hasId( ${to} ))`
+    const fromQuery = this.#searchQuery({ uuid: from })
+    const toQuery = this.#searchQuery({ uuid: to })
+    const query = `addE('link').from(${fromQuery}).to(${toQuery})`
     return this.#submitters(query)
   }
 }
